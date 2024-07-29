@@ -8,7 +8,7 @@ use rppal::pwm::Polarity;
 const MAX_TEMP: f64 = 70.0;
 const MIN_TEMP: f64 = 30.0;
 const FREQUENCY: f64 = 50.0;
-const SLEEP1: u64 = 5000;
+const SLEEP1: u64 = 2000;
 const SLEEPLOOP: u64 = 3000;
 
 
@@ -16,7 +16,7 @@ fn main() {
     let my_pwm = Pwm::with_frequency(Channel::Pwm0, FREQUENCY, 1.0, Polarity::Normal, false);
 	let my_pwm = match my_pwm {
 		Ok(object) => object,
-		Err(error) => panic!("no pwm: {:?}",error),
+		Err(error) => panic!("no pwm: {:?} \n You might need to enable access to the PWM pins. Typically add \'dtoverlay=pwm\' to \'/boot/firmware/config.txt\' ",error),
 	};
 	
 	thread::sleep(Duration::from_millis(SLEEP1));
