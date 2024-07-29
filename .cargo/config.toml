@@ -1,0 +1,9 @@
+[target.aarch64-unknown-linux-gnu]
+linker = "aarch64-linux-gnu-gcc" # Target != Linker 
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "armv7-unknown-linux-gnueabihf"
+
+[build]
+#target = "armv7-unknown-linux-gnueabihf" # pi4 32bit
+target = "aarch64-unknown-linux-gnu" # pi5 64bit
