@@ -1,3 +1,4 @@
+use std::f64;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
@@ -20,7 +21,10 @@ fn main() {
 	};
 	
 	thread::sleep(Duration::from_millis(SLEEP1));
-	let mut _result = my_pwm.enable();
+	if let Err(error) = my_pwm.enable(){
+		panic!("pwm could not be enabled. {:?}", error)
+	}
+
 	thread::sleep(Duration::from_millis(SLEEP1));
 	loop{
 		
@@ -38,8 +42,10 @@ fn main() {
 			_ => 1.0,
 		};
 		
-		_result = my_pwm.set_duty_cycle(duty_cycle);
-		//println!("\rtemp: {}°C, duty cycle: {}% ", temp, duty_cycle*100.0);
+		if let Err(error) = my_pwm.set_duty_cycle(duty_cycle) {
+			panic!("Could not set duty cycle.{:?}", error)
+		}
+		
 		thread::sleep(Duration::from_millis(SLEEPLOOP));
 
 	}
@@ -53,7 +59,11 @@ fn read_temp() -> f64{
         .expect("Failed to execute command");
 
 	let mystring = String::from_utf8(output.stdout).expect("Found invalid UTF-8");
-	let temp: f64 = mystring[5..9].parse().unwrap();
+	let temp = match mystring[5..9].parse::<f64>(){
+		Ok(result) => result,
+		Err(error) => panic!("could not parse.{:?}", error),
+	};
+	
 	//println!("{}",temp);
 	return temp.min(MAX_TEMP).max(MIN_TEMP);
 	
