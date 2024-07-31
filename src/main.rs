@@ -10,7 +10,6 @@ use std::{
 
 const MIN_TEMP: f64 = 30.0;
 const MAX_TEMP: f64 = 70.0;
-const X_DELTA: f64 = 0.1;
 const FREQUENCY: f64 = 50.0;
 const SLEEP1: u64 = 2000;
 const SLEEPLOOP: u64 = 3000;
@@ -40,14 +39,20 @@ impl Config {
 			if last_point.x == p.x && last_point.y == p.y{
 				return;
 			}
-            if last_point.x < p.x && last_point.y <= p.y {
+            if p.x > last_point.x && p.y >= last_point.y {
                 self.points.push(p);
-            } else {
-                self.points.push(Point::new(
-                    p.x.max(last_point.x + X_DELTA),
-                    last_point.y.max(p.y),
-                ));
+				return;
             }
+			if p.x > last_point.x && p.y < last_point.y {
+				let y = p.y.max(last_point.y);
+				self.points.push(Point::new(p.x, y));
+				return;
+            }
+			if p.x == last_point.x{
+				let y = p.y.max(last_point.y);
+				self.points.pop();
+				self.points.push(Point::new(p.x, y));
+			}
         }
     }
 
@@ -69,8 +74,8 @@ impl Config {
     }
 
     fn finalize(&mut self) {
-        self.points.push(Point {
-            x: MAX_TEMP + X_DELTA,
+        self.add(Point {
+            x: MAX_TEMP,
             y: MAX_FAN_SPEED,
         });
 
@@ -164,9 +169,6 @@ mod tests {
         conf.add(p3);
         conf.add(p4);
         println!("{:?}", conf);
-        let p = conf.points.pop().unwrap();
-        assert_eq!(p.x, 40.0 + X_DELTA);
-        assert_eq!(p.y, 0.3);
         let p = conf.points.pop().unwrap();
         assert_eq!(p.x, 40.0);
         assert_eq!(p.y, 0.2);
