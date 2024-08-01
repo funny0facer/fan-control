@@ -1,14 +1,14 @@
 use rppal::pwm::{Channel, Polarity, Pwm};
+use serde::{Deserialize, Serialize};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use serde::{Deserialize, Serialize};
 use std::{
     fs::{read_to_string, write},
     path::PathBuf,
 };
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 
 const MIN_TEMP: f64 = 30.0;
 const MAX_TEMP: f64 = 70.0;
@@ -38,23 +38,23 @@ impl Config {
             self.points.push(p)
         } else {
             let last_point = self.points.last().unwrap();
-			if last_point.x == p.x && last_point.y == p.y{
-				return;
-			}
+            if last_point.x == p.x && last_point.y == p.y {
+                return;
+            }
             if p.x > last_point.x && p.y >= last_point.y {
                 self.points.push(p);
-				return;
+                return;
             }
-			if p.x > last_point.x && p.y < last_point.y {
-				let y = p.y.max(last_point.y);
-				self.points.push(Point::new(p.x, y));
-				return;
+            if p.x > last_point.x && p.y < last_point.y {
+                let y = p.y.max(last_point.y);
+                self.points.push(Point::new(p.x, y));
+                return;
             }
-			if p.x == last_point.x{
-				let y = p.y.max(last_point.y);
-				self.points.pop();
-				self.points.push(Point::new(p.x, y));
-			}
+            if p.x == last_point.x {
+                let y = p.y.max(last_point.y);
+                self.points.pop();
+                self.points.push(Point::new(p.x, y));
+            }
         }
     }
 
@@ -80,7 +80,6 @@ impl Config {
             x: MAX_TEMP,
             y: MAX_FAN_SPEED,
         });
-
     }
 }
 
@@ -109,30 +108,30 @@ impl Point {
 }
 
 fn readconfig() -> Config {
-	let mut default_conf = Config::new();
-	default_conf.finalize();
-	let default_conf = default_conf;
-	let Ok(xdg_base) = xdg::BaseDirectories::new() else {
-		panic!("XDG Base Directory is configured wrong.")
-	};
-	let path = xdg_base.get_config_home().join("fancontrol.config");
+    let mut default_conf = Config::new();
+    default_conf.finalize();
+    let default_conf = default_conf;
+    let Ok(xdg_base) = xdg::BaseDirectories::new() else {
+        panic!("XDG Base Directory is configured wrong.")
+    };
+    let path = xdg_base.get_config_home().join("fancontrol.config");
 
-	let read_config = match read_to_string(&path) {
+    let read_config = match read_to_string(&path) {
         Ok(filecontent) => deserialize_file(filecontent),
         Err(_) => create_default_file(default_conf, path),
     };
 
-	let mut myvec = Vec::new();
-	for element in read_config.points{
-		myvec.push(Point::new(element.x, element.y));
-	}
+    let mut myvec = Vec::new();
+    for element in read_config.points {
+        myvec.push(Point::new(element.x, element.y));
+    }
 
     let mut cf = Config::new();
-	for element in myvec{
-		cf.add(element);
-	}
+    for element in myvec {
+        cf.add(element);
+    }
     cf.finalize();
-	cf
+    cf
 }
 
 fn create_default_file(default_conf: Config, path: PathBuf) -> Config {
@@ -194,32 +193,28 @@ mod tests {
         assert_eq!(p1.y, MAX_FAN_SPEED);
     }
 
-	#[test]
-	fn check_xdg(){
-		let xdg_base = xdg::BaseDirectories::new().unwrap();
-		let path = xdg_base.get_config_home();
-		println!("{:?}",path);
-	}
+    #[test]
+    fn check_xdg() {
+        let xdg_base = xdg::BaseDirectories::new().unwrap();
+        let path = xdg_base.get_config_home();
+        println!("{:?}", path);
+    }
 
-	#[test]
-	fn check_config_file(){
-		let cf = readconfig();
-		println!("{:?}",cf);
-	}
-
-
+    #[test]
+    fn check_config_file() {
+        let cf = readconfig();
+        println!("{:?}", cf);
+    }
 }
 
 fn main() {
-
     // ctrlc crate for handling SIGTERM
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
     ctrlc::set_handler(move || {
         r.store(false, Ordering::SeqCst);
-    }).expect("Error setting Ctrl-C handler");
-
-    
+    })
+    .expect("Error setting Ctrl-C handler");
 
     let my_pwm = Pwm::with_frequency(Channel::Pwm0, FREQUENCY, 1.0, Polarity::Normal, false);
     let my_pwm = match my_pwm {
@@ -235,7 +230,8 @@ fn main() {
     }
 
     thread::sleep(Duration::from_millis(SLEEP1));
-    while running.load(Ordering::SeqCst) { // wait for SIGTERM
+    while running.load(Ordering::SeqCst) {
+        // wait for SIGTERM
         let duty_cycle = myconfig.get_value(read_temp());
 
         if let Err(error) = my_pwm.set_duty_cycle(duty_cycle) {
@@ -249,8 +245,6 @@ fn main() {
     if let Err(error) = my_pwm.set_duty_cycle(0.0) {
         panic!("Could not set duty cycle.{:?}", error)
     }
-
-
 }
 
 fn read_temp() -> f64 {
