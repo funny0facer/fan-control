@@ -113,7 +113,7 @@ fn readconfig() -> Config {
 	let Ok(xdg_base) = xdg::BaseDirectories::new() else {
 		panic!("XDG Base Directory is configured wrong.")
 	};
-	let path = xdg_base.get_config_home().join("fancontrol/config.toml");
+	let path = xdg_base.get_config_home().join("fancontrol.config");
 
 	let read_config = match read_to_string(&path) {
         Ok(filecontent) => deserialize_file(filecontent),
