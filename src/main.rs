@@ -7,6 +7,8 @@ use std::{
     fs::{read_to_string, write},
     path::PathBuf,
 };
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 const MIN_TEMP: f64 = 30.0;
 const MAX_TEMP: f64 = 70.0;
@@ -209,6 +211,16 @@ mod tests {
 }
 
 fn main() {
+
+    // ctrlc crate for handling SIGTERM
+    let running = Arc::new(AtomicBool::new(true));
+    let r = running.clone();
+    ctrlc::set_handler(move || {
+        r.store(false, Ordering::SeqCst);
+    }).expect("Error setting Ctrl-C handler");
+
+    
+
     let my_pwm = Pwm::with_frequency(Channel::Pwm0, FREQUENCY, 1.0, Polarity::Normal, false);
     let my_pwm = match my_pwm {
 		Ok(object) => object,
@@ -223,7 +235,7 @@ fn main() {
     }
 
     thread::sleep(Duration::from_millis(SLEEP1));
-    loop {
+    while running.load(Ordering::SeqCst) { // wait for SIGTERM
         let duty_cycle = myconfig.get_value(read_temp());
 
         if let Err(error) = my_pwm.set_duty_cycle(duty_cycle) {
@@ -232,6 +244,13 @@ fn main() {
 
         thread::sleep(Duration::from_millis(SLEEPLOOP));
     }
+
+    println!("Shutting down fan_control. This will set the duty cycle to 0.0");
+    if let Err(error) = my_pwm.set_duty_cycle(0.0) {
+        panic!("Could not set duty cycle.{:?}", error)
+    }
+
+
 }
 
 fn read_temp() -> f64 {

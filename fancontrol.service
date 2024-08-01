@@ -1,0 +1,10 @@
+[Unit]
+Description=Control the fan
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/fan_control
+
+[Install]
+WantedBy=default.target
+
