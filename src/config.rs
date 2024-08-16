@@ -79,7 +79,7 @@ impl Config {
 
 fn interpolated_value(p1: &Point, p2: &Point, x: f64) -> f64 {
     if p1.x == p2.x {
-        panic!("geteilt durch 0 ist nicht cool.")
+        panic!("divided by 0 is not cool.")
     };
     let m = (p2.y - p1.y) / (p2.x - p1.x);
     let t = p1.y - m * p1.x;
@@ -108,7 +108,7 @@ pub fn readconfig() -> Config {
     let Ok(xdg_base) = xdg::BaseDirectories::new() else {
         panic!("XDG Base Directory is configured wrong.")
     };
-    let path = xdg_base.get_config_home().join("fancontrol.config");
+    let path = xdg_base.get_config_home().join("fan_control.config");
 
     let read_config = match read_to_string(&path) {
         Ok(filecontent) => deserialize_file(filecontent),
