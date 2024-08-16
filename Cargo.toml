@@ -1,5 +1,5 @@
 [package]
-name = "fan_control"
+name = "fan-control"
 version = "0.2.1"
 edition = "2021"
 

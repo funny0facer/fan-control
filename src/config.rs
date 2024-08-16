@@ -108,7 +108,7 @@ pub fn readconfig() -> Config {
     let Ok(xdg_base) = xdg::BaseDirectories::new() else {
         panic!("XDG Base Directory is configured wrong.")
     };
-    let path = xdg_base.get_config_home().join("fan_control.config");
+    let path = xdg_base.get_config_home().join("fan-control.config");
 
     let read_config = match read_to_string(&path) {
         Ok(filecontent) => deserialize_file(filecontent),

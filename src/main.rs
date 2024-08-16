@@ -56,7 +56,7 @@ fn main() {
         thread::sleep(Duration::from_millis(SLEEPLOOP));
     }
 
-    println!("Shutting down fan_control. This will set the duty cycle to 0.0");
+    println!("Shutting down fan-control. This will set the duty cycle to 0.0");
     if let Err(error) = my_pwm.set_duty_cycle(0.0) {
         panic!("Could not set duty cycle.{:?}", error)
     }
