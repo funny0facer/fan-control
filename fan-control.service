@@ -3,7 +3,7 @@ Description=Control the fan
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/fan_control
+ExecStart=/usr/local/bin/fan-control
 
 [Install]
 WantedBy=default.target
